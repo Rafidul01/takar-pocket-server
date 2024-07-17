@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 require('dotenv').config();
 
@@ -25,7 +26,22 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
 
-    
+    const usersCollection = client.db("takarPocket").collection("users");
+
+    app.post('/users', async (req, res) => {
+        const user = req.body;
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(user.pin, salt);
+        const userInfo = {
+            name: user.name,
+            email: user.email,
+            pin: hash,
+            role: ""
+        }
+        // console.log(userInfo);
+        const result = await usersCollection.insertOne(user);
+        res.send(result);
+    })
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
